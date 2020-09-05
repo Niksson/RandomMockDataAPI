@@ -8,7 +8,7 @@ namespace GenericMockApi.Repositories.RandomGeneratorFactory
 {
     public interface IRandomGeneratorFactory
     {
-        public IRandomValueGenerator<T> CreateNumeric<T>(int seed);
+        public IRandomValueGenerator<double> CreateNumeric(int seed);
         public IRandomValueGenerator<string> CreateString(int seed);
         public IRandomValueGenerator<bool> CreateBoolean(int seed);
         public IRandomValueGenerator<DateTime> CreateDateTime(int seed);

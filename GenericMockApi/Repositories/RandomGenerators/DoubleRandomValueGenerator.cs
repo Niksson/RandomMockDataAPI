@@ -5,20 +5,20 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class NumericRandomValueGenerator<T> : IRandomValueGenerator<T>
+    public class DoubleRandomValueGenerator : IRandomValueGenerator<double>
     {
         private readonly Random _generator;
 
-        public NumericRandomValueGenerator(int seed)
+        public DoubleRandomValueGenerator(int seed)
         {
             _generator = new Random(seed);
         }
 
-        public T GetNext()
+        public double GetNext()
         {
             var value = _generator.NextDouble() * 1000;
 
-            return (T)Activator.CreateInstance(typeof(T), value);
+            return value;
         }
 
     }

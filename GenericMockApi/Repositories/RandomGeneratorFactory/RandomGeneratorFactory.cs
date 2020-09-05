@@ -18,11 +18,10 @@ namespace GenericMockApi.Repositories.RandomGeneratorFactory
             return new DateTimeRandomValueGenerator(seed);
         }
 
-        public IRandomValueGenerator<T> CreateNumeric<T>(int seed)
+        public IRandomValueGenerator<double> CreateNumeric(int seed)
         {
-            return new NumericRandomValueGenerator<T>(seed);
+            return new DoubleRandomValueGenerator(seed);
         }
-
         public IRandomValueGenerator<string> CreateString(int seed)
         {
             return new StringRandomValueGenerator(seed);
