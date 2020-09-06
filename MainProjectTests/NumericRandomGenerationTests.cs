@@ -138,5 +138,19 @@ namespace MainProjectTests
             // Assert
             value1.Should().Be(value2, "random generators should be stable with the same seed");
         }
+
+        [Fact]
+        public void RandomGenerationSkipStability()
+        {
+            // Arrange
+            var testingGen1 = _factory.CreateNumeric(1000);
+            var testingGen2 = _factory.CreateNumeric(1000);
+
+            // Act
+            var value1 = testingGen1.Skip(10000).GetNext();
+            var value2 = testingGen2.Skip(10000).GetNext();
+
+            value1.Should().Be(value2, "skipping the same amount of elements should lead to the same sequence");
+        }
     }
 }
