@@ -5,7 +5,21 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public interface IRandomValueGenerator<T>
+    // I know that this may be not the best solution, but
+    // until I find a better way, let's leave it as is
+
+    /// <summary>
+    /// A non-generic helper interface to use with collections
+    /// </summary>
+    public interface IRandomValueGenerator
+    { 
+    }
+
+    /// <summary>
+    /// A generic interface defining methods for generating random values of type T
+    /// </summary>
+    /// <typeparam name="T">A type T values of which to generate</typeparam>
+    public interface IRandomValueGenerator<T> : IRandomValueGenerator
     {
         public T GetNext();
 
