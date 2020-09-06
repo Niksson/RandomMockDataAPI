@@ -12,5 +12,6 @@ namespace GenericMockApi.Repositories.RandomGeneratorFactory
         public IRandomValueGenerator<string> CreateString(int seed);
         public IRandomValueGenerator<bool> CreateBoolean(int seed);
         public IRandomValueGenerator<DateTime> CreateDateTime(int seed);
+        public IRandomValueGenerator<int> CreateCollectionSize(int seed);
     }
 }
