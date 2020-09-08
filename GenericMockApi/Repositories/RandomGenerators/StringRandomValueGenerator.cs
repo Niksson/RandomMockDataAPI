@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class StringRandomValueGenerator : IRandomValueGenerator<string>
+    public class StringRandomValueGenerator : RandomValueGenerator<string>
     {
         private readonly Random _generator;
         private readonly string _base = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -16,7 +16,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             _generator = new Random(seed);
         }
 
-        public string GetNext()
+        public override string GetNext()
         {
             var stringBuilder = new StringBuilder();
 

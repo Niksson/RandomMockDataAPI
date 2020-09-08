@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class DoubleRandomValueGenerator : IRandomValueGenerator<double>
+    public class DoubleRandomValueGenerator : RandomValueGenerator<double>
     {
         private readonly Random _generator;
 
@@ -14,7 +14,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             _generator = new Random(seed);
         }
 
-        public double GetNext()
+        public override double GetNext()
         {
             var value = _generator.NextDouble() * 1000;
 

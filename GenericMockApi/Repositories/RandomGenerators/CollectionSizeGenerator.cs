@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class CollectionSizeGenerator : IRandomValueGenerator<int>
+    public class CollectionSizeGenerator : RandomValueGenerator<int>
     {
         private readonly Random _generator;
 
@@ -14,7 +14,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             _generator = new Random(seed);
         }
 
-        public int GetNext()
+        public override int GetNext()
         {
             return _generator.Next(2, 6);
         }

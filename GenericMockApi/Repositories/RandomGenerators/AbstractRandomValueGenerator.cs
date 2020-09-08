@@ -14,21 +14,22 @@ namespace GenericMockApi.Repositories.RandomGenerators
     /// <summary>
     /// A non-generic helper interface to use with collections
     /// </summary>
-    public interface IRandomValueGenerator
+    public abstract class AbstractRandomValueGenerator
     {
+        public abstract AbstractRandomValueGenerator Skip(int skip);
     }
 
     /// <summary>
     /// A generic interface defining methods for generating random values of type T
     /// </summary>
     /// <typeparam name="T">A type T values of which to generate</typeparam>
-    public interface IRandomValueGenerator<T> : IRandomValueGenerator
+    public abstract class RandomValueGenerator<T> : AbstractRandomValueGenerator
     {
-        public T GetNext();
+        public abstract T GetNext();
 
         // Default implementations that should be the same between types
 
-        public IRandomValueGenerator<T> Skip(int skip)
+        public override AbstractRandomValueGenerator Skip(int skip)
         {
             for (var i = 0; i < skip; i++)
             {

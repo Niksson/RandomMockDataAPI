@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 namespace GenericMockApi.Repositories.RandomGenerators
 {
 
-    public class RandomCollectionGenerator<T> : IRandomValueGenerator<T> where T : IEnumerable
+    public class RandomCollectionGenerator<T> : RandomValueGenerator<T> where T : IEnumerable
     {
         private readonly IRandomGeneratorFactory _generatorFactory = new RandomGeneratorFactory();
         private readonly int _seed;
         private readonly int _depthLimit;
 
-        private IRandomValueGenerator<int> _randomLengthGenerator;
-        private IRandomValueGenerator _randomValueGenerator;
+        private RandomValueGenerator<int> _randomLengthGenerator;
+        private AbstractRandomValueGenerator _randomValueGenerator;
 
         public RandomCollectionGenerator(int seed, int depthLimit)
         {
@@ -56,7 +56,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
            
         }
 
-        public T GetNext()
+        public override T GetNext()
         {
             var length = _randomLengthGenerator.GetNext();
 

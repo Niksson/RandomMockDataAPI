@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class RandomObjectGenerator<T> : IRandomValueGenerator<T> where T : class
+    public class RandomObjectGenerator<T> : RandomValueGenerator<T> where T : class
     {
 
         private readonly int _masterSeed;
@@ -19,12 +19,12 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         private readonly IRandomGeneratorFactory _factory = new RandomGeneratorFactory();
 
-        private Dictionary<PropertyInfo, IRandomValueGenerator<double>> numericValueGenerators;
-        private Dictionary<PropertyInfo, IRandomValueGenerator<string>> stringValueGenerators;
-        private Dictionary<PropertyInfo, IRandomValueGenerator<bool>> booleanValueGenerators;
-        private Dictionary<PropertyInfo, IRandomValueGenerator<DateTime>> dateTimeValueGenerators;
-        private Dictionary<PropertyInfo, IRandomValueGenerator> collectionValueGenerators;
-        private Dictionary<PropertyInfo, IRandomValueGenerator> objectValueGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator<double>> numericValueGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator<string>> stringValueGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator<bool>> booleanValueGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator<DateTime>> dateTimeValueGenerators;
+        private Dictionary<PropertyInfo, AbstractRandomValueGenerator> collectionValueGenerators;
+        private Dictionary<PropertyInfo, AbstractRandomValueGenerator> objectValueGenerators;
 
         // Key: navigation property, Value: its FK
         private Dictionary<PropertyInfo, PropertyInfo> navigationPropertiesWithFk;
@@ -72,7 +72,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                         if (idProp != null)
                         {
                             var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(typeof(T));
-                            var generator = (IRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(navigationProp), _depthLimit - 1);
+                            var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(navigationProp), _depthLimit - 1);
                             objectValueGenerators.Add(navigationProp, generator);
                             props.Remove(navigationProp);
                         }
@@ -95,7 +95,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                                 .FirstOrDefault(p => p.Name.ToLower() == "id") != null))
                     {
                         var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(typeof(T));
-                        var generator = (IRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(prop), _depthLimit - 1);
+                        var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(prop), _depthLimit - 1);
                         objectValueGenerators.Add(prop, generator);
 
                         props.Remove(fkProp);
@@ -111,7 +111,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // 3. Assign generators to properties with "primitive" types
 
             // 3.1 Numeric props
-            numericValueGenerators = new Dictionary<PropertyInfo, IRandomValueGenerator<double>>();
+            numericValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<double>>();
 
             var numericProps = props.Where(p => TypeHelpers.IsTypeNumericOrChar(p.PropertyType));
 
@@ -119,11 +119,11 @@ namespace GenericMockApi.Repositories.RandomGenerators
             {
                 var additionalSeed = GetAdditionalSeed<T>(prop);
 
-                numericValueGenerators.Add(prop, _factory.CreateNumericGenerator(_masterSeed + additionalSeed););
+                numericValueGenerators.Add(prop, _factory.CreateNumericGenerator(_masterSeed + additionalSeed));
             }
 
             // 3.2 String props
-            stringValueGenerators = new Dictionary<PropertyInfo, IRandomValueGenerator<string>>();
+            stringValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<string>>();
 
             var stringProps = props.Where(p => p.PropertyType == typeof(string)).ToList();
 
@@ -137,7 +137,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             props = props.Except(stringProps).ToList();
 
             // 3.3 Boolean props
-            booleanValueGenerators = new Dictionary<PropertyInfo, IRandomValueGenerator<bool>>();
+            booleanValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<bool>>();
 
             var booleanProps = props.Where(p => p.PropertyType == typeof(bool)).ToList();
 
@@ -151,7 +151,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             props = props.Except(booleanProps).ToList();
 
             // 3.4 DateTime props
-            dateTimeValueGenerators = new Dictionary<PropertyInfo, IRandomValueGenerator<DateTime>>();
+            dateTimeValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<DateTime>>();
 
             var dateTimeProps = props.Where(p => p.PropertyType == typeof(string)).ToList();
 
@@ -181,7 +181,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                     var additionalSeed = GetAdditionalSeed<T>(prop);
 
                     var generatorType = typeof(RandomCollectionGenerator<>).MakeGenericType(prop.PropertyType);
-                    var generator = (IRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + additionalSeed, _depthLimit - 1);
+                    var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + additionalSeed, _depthLimit - 1);
 
                     collectionValueGenerators.Add(prop, generator);
                 }
@@ -200,7 +200,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                     var additionalSeed = GetAdditionalSeed<T>(prop);
 
                     var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(prop.PropertyType);
-                    var generator = (IRandomValueGenerator)Activator.CreateInstance(generatorType, additionalSeed, _depthLimit - 1);
+                    var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, additionalSeed, _depthLimit - 1);
                     objectValueGenerators.Add(prop, generator);
                 }
             }
@@ -209,7 +209,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         }
 
-        public T GetNext()
+        public override T GetNext()
         {
             if (_depthLimit < 1) return null;
 
@@ -269,9 +269,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
             return instance;
         }
 
-        private int GetAdditionalSeed<T>(PropertyInfo prop)
+        private int GetAdditionalSeed<TType>(PropertyInfo prop)
         {
-            return (prop.Name + nameof(T)).GetHashCode();
+            return (prop.Name + nameof(TType)).GetHashCode();
         }
     }
 }

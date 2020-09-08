@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class DateTimeRandomValueGenerator : IRandomValueGenerator<DateTime> 
+    public class DateTimeRandomValueGenerator : RandomValueGenerator<DateTime> 
     {
         private readonly Random _generator;
 
@@ -14,7 +14,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             _generator = new Random(seed);
         }
 
-        public DateTime GetNext()
+        public override DateTime GetNext()
         {
             var start = new DateTime(2010, 1, 1);
             var end = new DateTime(2025, 1, 1);

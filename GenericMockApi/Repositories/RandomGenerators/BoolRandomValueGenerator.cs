@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class BoolRandomValueGenerator : IRandomValueGenerator<bool>
+    public class BoolRandomValueGenerator : RandomValueGenerator<bool>
     {
         private readonly Random _generator;
 
@@ -14,7 +14,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             _generator = new Random(seed);
         }
 
-        public bool GetNext()
+        public override bool GetNext()
         {
             // There are different methods to generate a bool value,
             // so let's choose the first one that comes to head
