@@ -18,26 +18,36 @@ namespace GenericMockApi.Repositories
             _cache = cache;
         }
 
-        public Type GetTypeFromAssemblies(string typeName)
+#nullable enable
+        /// <summary>
+        /// This methods scans all assemblies in the current assembly directory.
+        /// This method will return null if type isn't found or doesn't have a parameterless constructor
+        /// </summary>
+        /// <param name="typeName">Name of type to look for</param>
+        /// <returns></returns>
+        public Type? GetTypeFromAssemblies(string typeName)
         {
+            #region Get from cache
             // First, let's try to find the type in cache
             Type type;
 
             if(_cache.TryGetValue(typeName.ToLower(), out type)) return type;
 
             // If not found, we'll need to try to find the type within assemblies
-            
+            #endregion
+
             // Get files from the executable directory
 
-            var currentLocation = Directory.GetCurrentDirectory();
-            var dir = new DirectoryInfo(currentLocation);
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+
+            var dir = new DirectoryInfo(Path.GetDirectoryName(assemblyLocation));
 
             var files = dir.GetFiles();
 
             // Filter out all files which don't have .dll extension or where file name is equal to entry assembly name
             files = files.Where(f =>
             {
-                return (Regex.IsMatch(f.Name, @".*\.dll") && Path.GetFileNameWithoutExtension(f.Name) != Assembly.GetEntryAssembly().GetName().Name);
+                return Regex.IsMatch(f.Name, @".*\.dll") && Path.GetFileNameWithoutExtension(f.Name) != Assembly.GetExecutingAssembly().GetName().Name;
             }).ToArray();
 
             // Let's try to find the needed type in file with name equal to typeName
@@ -56,7 +66,9 @@ namespace GenericMockApi.Repositories
             {
                 var types = GetLoadableTypes(f);
                 type = types.FirstOrDefault(t => t.Name.ToLower() == typeName.ToLower());
-                if (type != null) return type;
+
+                // Ignore the type without parameterless constructor
+                if (type != null && type.GetConstructor(Type.EmptyTypes) != null)  return type;
             }
 
             // Everything failed! Return null
@@ -64,10 +76,10 @@ namespace GenericMockApi.Repositories
 
         }
 
-        private IEnumerable<Type> GetLoadableTypes(FileInfo path)
+        private IEnumerable<Type>? GetLoadableTypes(FileInfo path)
         {
             var assembly = Assembly.LoadFile(path.FullName);
-            Type[] types;
+            Type[]? types;
             try
             {
                 types = assembly.GetTypes();
