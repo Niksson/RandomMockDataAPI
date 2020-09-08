@@ -20,6 +20,7 @@ namespace MainProjectTests
             public string[] StringCollectionProperty { get; set; }
             public int ReadOnlyProperty { get; }
             public IEnumerable<TestType> TestCollectionProperty { get; set; }
+            public IEnumerable<int> IntCollectionProperty { get; set; }
             public bool BooleanProp { get; set; }
         }
 

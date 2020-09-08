@@ -83,7 +83,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                     {
                         var convertedValue = Convert.ChangeType(value, _typeParameter);
                         var addingMethod = instance.GetType().GetMethod("Add");
-                        addingMethod.Invoke(instance, convertedValue);
+                        addingMethod.Invoke(instance, new object[] { convertedValue });
                     }
                     else instance.Add(generator.GetNext());
                 }
