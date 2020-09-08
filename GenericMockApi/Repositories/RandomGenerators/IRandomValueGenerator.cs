@@ -5,14 +5,17 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    // I know that this may be not the best solution, but
-    // until I find a better way, let's leave it as is
+    // There are two approaches to generating a value of any type:
+    // generics and converting to object.
+    // Converting to object and casting to other types (boxing and unboxing) is SLOW
+    // so I use generic random generators. This produces not so clean code to later
+    // generate the value itself, but it is faster than boxing/unboxing
 
     /// <summary>
     /// A non-generic helper interface to use with collections
     /// </summary>
     public interface IRandomValueGenerator
-    { 
+    {
     }
 
     /// <summary>
