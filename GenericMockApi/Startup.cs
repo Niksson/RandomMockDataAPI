@@ -1,3 +1,6 @@
+using GenericMockApi.Options;
+using GenericMockApi.Repositories;
+using GenericMockApi.Repositories.RandomGenFactory;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +24,13 @@ namespace GenericMockApi
             services.AddControllers();
 
             services.AddMemoryCache();
+
+            services.Configure<MockGeneratorOptions>(Configuration.GetSection("GenerationOptions"));
+
+            services.AddScoped<IMockDataRepository, RandomMockDataRepository>();
+            services.AddScoped<IRandomGeneratorFactory, RandomGeneratorFactory>();
+
+            services.AddScoped<TypeFinder>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -31,7 +41,7 @@ namespace GenericMockApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
