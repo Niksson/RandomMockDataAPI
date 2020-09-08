@@ -24,6 +24,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
         private Dictionary<PropertyInfo, RandomValueGenerator<bool>> booleanValueGenerators;
         private Dictionary<PropertyInfo, RandomValueGenerator<DateTime>> dateTimeValueGenerators;
         private Dictionary<PropertyInfo, AbstractRandomValueGenerator> collectionValueGenerators;
+        private Dictionary<PropertyInfo, AbstractRandomValueGenerator> navigationPropertiesGenerators;
         private Dictionary<PropertyInfo, AbstractRandomValueGenerator> objectValueGenerators;
 
         // Key: navigation property, Value: its FK
@@ -47,8 +48,10 @@ namespace GenericMockApi.Repositories.RandomGenerators
             props = props.Where(p => p.CanWrite).ToList();
 
             #region Navigation props generators
+            navigationPropertiesGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
 
-            // 2. Try to find navigation properties (properties with a foreign key)
+            // 2. Try to find navigation properties (properties with a foreign key
+
             navigationPropertiesWithFk = new Dictionary<PropertyInfo, PropertyInfo>();
 
             if (_depthLimit > 1)
@@ -73,7 +76,8 @@ namespace GenericMockApi.Repositories.RandomGenerators
                         {
                             var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(typeof(T));
                             var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(navigationProp), _depthLimit - 1);
-                            objectValueGenerators.Add(navigationProp, generator);
+                            navigationPropertiesGenerators.Add(navigationProp, generator);
+                            navigationPropertiesWithFk.Add(navigationProp, prop);
                             props.Remove(navigationProp);
                         }
                         else foreignKeyProps.Remove(prop);
@@ -94,9 +98,10 @@ namespace GenericMockApi.Repositories.RandomGenerators
                                 .GetProperties()
                                 .FirstOrDefault(p => p.Name.ToLower() == "id") != null))
                     {
-                        var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(typeof(T));
+                        var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(prop.PropertyType);
                         var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(prop), _depthLimit - 1);
-                        objectValueGenerators.Add(prop, generator);
+                        navigationPropertiesGenerators.Add(prop, generator);
+                        navigationPropertiesWithFk.Add(prop, fkProp);
 
                         props.Remove(fkProp);
                         props.Remove(prop);
@@ -169,6 +174,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             #region Collection props generators
 
             // 4. Assign generators to collection props
+            collectionValueGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
 
             if(_depthLimit > 0)
             {
@@ -191,8 +197,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
             #region Other props generators
             // 5. Leave all props that we can easily assign at runtime - which have a constructor with no parameters
-            
-            if(_depthLimit > 1)
+            objectValueGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
+
+            if (_depthLimit > 1)
             {
                 props = props.Where(p => p.PropertyType.GetConstructor(Type.EmptyTypes) != null).ToList();
                 foreach (var prop in props)
@@ -217,20 +224,25 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
             foreach(var navigationProp in navigationPropertiesWithFk)
             {
-                var generatorType = objectValueGenerators[navigationProp.Key].GetType();
-                dynamic generator = Convert.ChangeType(objectValueGenerators[navigationProp.Key], generatorType);
+                var generatorType = navigationPropertiesGenerators[navigationProp.Key].GetType();
+                dynamic generator = Convert.ChangeType(navigationPropertiesGenerators[navigationProp.Key], generatorType);
                 var generatedValue = generator.GetNext();
                 navigationProp.Key.SetValue(instance, generatedValue);
                 var idProp = navigationProp.Key.PropertyType.GetProperties().FirstOrDefault(p => p.Name.ToLower() == "id");
                 navigationProp.Value.SetValue(instance, idProp.GetValue(generatedValue));
-                objectValueGenerators.Remove(navigationProp.Key);
             }
 
             #region Primitive properties
 
             foreach(var propertyWithGenerator in numericValueGenerators)
             {
-                propertyWithGenerator.Key.SetValue(instance, propertyWithGenerator.Value.GetNext());
+                var generatedValue = propertyWithGenerator.Value.GetNext();
+                if(propertyWithGenerator.Key.PropertyType != typeof(double))
+                {
+                    var convertedValue = Convert.ChangeType(generatedValue, propertyWithGenerator.Key.PropertyType);
+                    propertyWithGenerator.Key.SetValue(instance, convertedValue);
+                }
+                else propertyWithGenerator.Key.SetValue(instance, propertyWithGenerator.Value.GetNext());
             }
 
             foreach (var propertyWithGenerator in stringValueGenerators)

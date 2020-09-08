@@ -17,6 +17,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
         private readonly int _seed;
         private readonly int _depthLimit;
 
+        private readonly Type _collectionType;
+        private readonly Type _typeParameter;
+
         private RandomValueGenerator<int> _randomLengthGenerator;
         private AbstractRandomValueGenerator _randomValueGenerator;
 
@@ -24,35 +27,38 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
             _seed = seed;
             _depthLimit = depthLimit;
+
+            _collectionType = typeof(T);
+            if (_collectionType.IsArray) _typeParameter = _collectionType.GetElementType();
+            else _typeParameter = _collectionType.GetGenericArguments().FirstOrDefault();
+
+            InitializeGenerators();
         }
 
         private void InitializeGenerators()
         {
             _randomLengthGenerator = _generatorFactory.CreateCollectionSizeGenerator(_seed);
 
-            var collectionType = typeof(T);
-            var typeParameter = collectionType.GetGenericArguments().FirstOrDefault();
-
-            if (TypeHelpers.IsTypeNumericOrChar(typeParameter))
+            if (TypeHelpers.IsTypeNumericOrChar(_typeParameter))
                 _randomValueGenerator = _generatorFactory.CreateNumericGenerator(_seed);
-            else if (typeParameter == typeof(string))
+            else if (_typeParameter == typeof(string))
                 _randomValueGenerator = _generatorFactory.CreateStringGenerator(_seed);
-            else if (typeParameter == typeof(bool))
+            else if (_typeParameter == typeof(bool))
                 _randomValueGenerator = _generatorFactory.CreateBooleanGenerator(_seed);
-            else if (typeParameter == typeof(DateTime))
+            else if (_typeParameter == typeof(DateTime))
                 _randomValueGenerator = _generatorFactory.CreateDateTimeGenerator(_seed);
 
             // Just for sake of not making this too complicated let's assume that if a type
             // implements IEnumerable then it's a collection 
             // We've also already checked if the type is string, so it's safe to just check IEnumerable
-            else if (typeParameter.GetInterface(nameof(IEnumerable)) != null)
-                _randomValueGenerator = _generatorFactory.CreateCollectionGenerator(typeParameter, _seed + _depthLimit, _depthLimit - 1);
+            else if (_typeParameter.GetInterface(nameof(IEnumerable)) != null)
+                _randomValueGenerator = _generatorFactory.CreateCollectionGenerator(_typeParameter, _seed + _depthLimit, _depthLimit - 1);
 
-            else if (typeParameter.IsClass && !(typeof(Delegate).IsAssignableFrom(typeParameter)) && typeParameter.GetConstructor(Type.EmptyTypes) != null)
-                _randomValueGenerator = _generatorFactory.CreateObjectGenerator(typeParameter, _seed, _depthLimit - 1);
+            else if (_typeParameter.IsClass && !(typeof(Delegate).IsAssignableFrom(_typeParameter)) && _typeParameter.GetConstructor(Type.EmptyTypes) != null)
+                _randomValueGenerator = _generatorFactory.CreateObjectGenerator(_typeParameter, _seed, _depthLimit - 1);
 
             // We can't assign value types other than we know about or types without a parameterless constructor
-            else throw new ArgumentException("The type parameter of collection is not a simple type, class type or a collection type, or it doesn't have a parameterless constructor");
+            else _randomValueGenerator = null;
            
         }
 
@@ -61,21 +67,33 @@ namespace GenericMockApi.Repositories.RandomGenerators
             var length = _randomLengthGenerator.GetNext();
 
             // Create instance of collection
-            var collectionType = typeof(T);
-            var typeParameter = collectionType.GetGenericArguments().FirstOrDefault();
-            var iListType = typeof(IList<>).MakeGenericType(typeParameter);
+            var iListType = typeof(List<>).MakeGenericType(_typeParameter);
 
             var instance = (IList)Activator.CreateInstance(iListType);
 
-            var generatorType = _randomValueGenerator.GetType();
-            dynamic generator = Convert.ChangeType(_randomValueGenerator, generatorType);
-
-            for (int i = 0; i < length; i++)
+            if(_randomValueGenerator != null)
             {
-                instance.Add(generator.GetNext());
-            }
+                var generatorType = _randomValueGenerator.GetType();
+                dynamic generator = Convert.ChangeType(_randomValueGenerator, generatorType);
 
-            return (T)Convert.ChangeType(instance, typeof(T));
+                for (int i = 0; i < length; i++)
+                {
+                    instance.Add(generator.GetNext());
+                }
+            }
+            else
+                for (int i = 0; i < length; i++)
+                {
+                    instance.Add(Activator.CreateInstance(_typeParameter));
+                }
+            if (_collectionType.IsArray)
+            {
+                var arrayType = _typeParameter.MakeArrayType();
+                dynamic arrayInstance = Activator.CreateInstance(arrayType, length);
+                instance.CopyTo(arrayInstance, 0);
+                return arrayInstance;
+            }
+            return (T)instance;
         }
 
     }

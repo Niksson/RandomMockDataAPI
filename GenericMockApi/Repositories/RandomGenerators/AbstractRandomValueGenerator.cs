@@ -16,7 +16,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
     /// </summary>
     public abstract class AbstractRandomValueGenerator
     {
-        public abstract AbstractRandomValueGenerator Skip(int skip);
+        
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         // Default implementations that should be the same between types
 
-        public override AbstractRandomValueGenerator Skip(int skip)
+        public RandomValueGenerator<T> Skip(int skip)
         {
             for (var i = 0; i < skip; i++)
             {
