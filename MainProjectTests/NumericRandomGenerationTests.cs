@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using GenericMockApi.Repositories.RandomGeneratorFactory;
+using GenericMockApi.Repositories.RandomGenFactory;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,8 +15,8 @@ namespace MainProjectTests
         public void IntGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
             
 
             // Act
@@ -31,8 +31,8 @@ namespace MainProjectTests
         public void FloatGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -47,8 +47,8 @@ namespace MainProjectTests
         public void DecimalGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -63,8 +63,8 @@ namespace MainProjectTests
         public void DoubleGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -79,8 +79,8 @@ namespace MainProjectTests
         public void ByteGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -95,8 +95,8 @@ namespace MainProjectTests
         public void LongGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -111,8 +111,8 @@ namespace MainProjectTests
         public void UintGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -127,8 +127,8 @@ namespace MainProjectTests
         public void UlongGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
 
             // Act
@@ -143,8 +143,8 @@ namespace MainProjectTests
         public void RandomGenerationSkipStability()
         {
             // Arrange
-            var testingGen1 = _factory.CreateNumeric(1000);
-            var testingGen2 = _factory.CreateNumeric(1000);
+            var testingGen1 = _factory.CreateNumericGenerator(1000);
+            var testingGen2 = _factory.CreateNumericGenerator(1000);
 
             // Act
             var value1 = testingGen1.Skip(10000).GetNext();

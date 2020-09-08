@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using GenericMockApi.Repositories.RandomGeneratorFactory;
+using GenericMockApi.Repositories.RandomGenFactory;
 using Xunit;
 
 namespace MainProjectTests
@@ -13,8 +13,8 @@ namespace MainProjectTests
         public void StringGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateString(_seed);
-            var testingGen2 = _factory.CreateString(_seed);
+            var testingGen1 = _factory.CreateStringGenerator(_seed);
+            var testingGen2 = _factory.CreateStringGenerator(_seed);
 
             // Act
             var value1 = testingGen1.GetNext();
@@ -26,8 +26,8 @@ namespace MainProjectTests
         [Fact]
         public void MultipleStringGenerationStabilityTest()
         {
-            var testingGen1 = _factory.CreateString(_seed);
-            var testingGen2 = _factory.CreateString(_seed);
+            var testingGen1 = _factory.CreateStringGenerator(_seed);
+            var testingGen2 = _factory.CreateStringGenerator(_seed);
 
             var value1 = testingGen1.Skip(10000).GetValues(10000);
             var value2 = testingGen2.Skip(10000).GetValues(10000);
@@ -39,8 +39,8 @@ namespace MainProjectTests
         public void BoolGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateBoolean(_seed);
-            var testingGen2 = _factory.CreateBoolean(_seed);
+            var testingGen1 = _factory.CreateBooleanGenerator(_seed);
+            var testingGen2 = _factory.CreateBooleanGenerator(_seed);
 
             // Act
             var value1 = testingGen1.GetNext();
@@ -53,8 +53,8 @@ namespace MainProjectTests
         public void DateTimeGenerationStabilityTest()
         {
             // Arrange
-            var testingGen1 = _factory.CreateDateTime(_seed);
-            var testingGen2 = _factory.CreateDateTime(_seed);
+            var testingGen1 = _factory.CreateDateTimeGenerator(_seed);
+            var testingGen2 = _factory.CreateDateTimeGenerator(_seed);
 
             // Act
             var value1 = testingGen1.GetNext();
