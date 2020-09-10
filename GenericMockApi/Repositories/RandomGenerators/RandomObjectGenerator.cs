@@ -158,7 +158,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // 3.4 DateTime props
             dateTimeValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<DateTime>>();
 
-            var dateTimeProps = props.Where(p => p.PropertyType == typeof(string)).ToList();
+            var dateTimeProps = props.Where(p => p.PropertyType == typeof(DateTime)).ToList();
 
             foreach (var prop in dateTimeProps)
             {
