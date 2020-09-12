@@ -283,7 +283,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         private int GetAdditionalSeed<TType>(PropertyInfo prop)
         {
-            return (prop.Name + nameof(TType)).GetHashCode();
+            return GenerationHelpers.GetDeterministicHashCode((prop.Name + typeof(TType).Name));
         }
     }
 }
