@@ -7,9 +7,15 @@ namespace GenericMockApi.Helpers
 {
     public class TypeHelpers
     {
+
+        /// <summary>
+        /// Returns true if the provided type is a numeric type (integral or real) or a char type
+        /// </summary>
+        /// <param name="type">Type to check</param>
+        /// <returns></returns>
         public static bool IsTypeNumericOrChar(Type type)
         {
-            var numericTypes = new List<Type>()
+            var numericTypes = new HashSet<Type>()
             {
                 typeof(int),
                 typeof(int),

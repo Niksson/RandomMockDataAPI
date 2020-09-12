@@ -42,10 +42,10 @@ namespace GenericMockApi.Repositories.RandomGenerators
         private void InitializeGenerators()
         {
             // Get all props of a type
-            var props = typeof(T).GetRuntimeProperties().ToList();
+            var props = typeof(T).GetRuntimeProperties();
 
             // 1. Filter out all read only props, we cannot assign them anyway
-            props = props.Where(p => p.CanWrite).ToList();
+            props = props.Where(p => p.CanWrite);
 
             #region Navigation props generators
             navigationPropertiesGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
@@ -78,19 +78,19 @@ namespace GenericMockApi.Repositories.RandomGenerators
                             var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(navigationProp), _depthLimit - 1);
                             navigationPropertiesGenerators.Add(navigationProp, generator);
                             navigationPropertiesWithFk.Add(navigationProp, prop);
-                            props.Remove(navigationProp);
                         }
                         else foreignKeyProps.Remove(prop);
                     }
                     else foreignKeyProps.Remove(prop);
                 }
 
-                props = props.Except(foreignKeyProps).ToList();
+                props = props.Except(navigationPropertiesWithFk.Keys);
+                props = props.Except(navigationPropertiesWithFk.Values);
 
                 // Method B: via checking the names
 
                 // Get properties, types of which are classes (excluding string)
-                var classProps = props.Where(p => p.PropertyType != typeof(string) && p.PropertyType.IsClass).ToList();
+                var classProps = props.Where(p => p.PropertyType != typeof(string) && p.PropertyType.IsClass);
                 foreach (var prop in classProps)
                 {
                     var fkProp = props.FirstOrDefault(p => $"{prop.Name}Id".ToLower() == p.Name.ToLower());
@@ -102,11 +102,11 @@ namespace GenericMockApi.Repositories.RandomGenerators
                         var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(prop), _depthLimit - 1);
                         navigationPropertiesGenerators.Add(prop, generator);
                         navigationPropertiesWithFk.Add(prop, fkProp);
-
-                        props.Remove(fkProp);
-                        props.Remove(prop);
                     }
-                } 
+                }
+
+                props = props.Except(navigationPropertiesWithFk.Keys);
+                props = props.Except(navigationPropertiesWithFk.Values);
             }
 
             #endregion
@@ -130,7 +130,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // 3.2 String props
             stringValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<string>>();
 
-            var stringProps = props.Where(p => p.PropertyType == typeof(string)).ToList();
+            var stringProps = props.Where(p => p.PropertyType == typeof(string));
 
             foreach (var prop in stringProps)
             {
@@ -144,7 +144,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // 3.3 Boolean props
             booleanValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<bool>>();
 
-            var booleanProps = props.Where(p => p.PropertyType == typeof(bool)).ToList();
+            var booleanProps = props.Where(p => p.PropertyType == typeof(bool));
 
             foreach (var prop in booleanProps)
             {
@@ -158,7 +158,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // 3.4 DateTime props
             dateTimeValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<DateTime>>();
 
-            var dateTimeProps = props.Where(p => p.PropertyType == typeof(DateTime)).ToList();
+            var dateTimeProps = props.Where(p => p.PropertyType == typeof(DateTime));
 
             foreach (var prop in dateTimeProps)
             {
@@ -180,7 +180,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             {
                 // We already excluded all props of type string, so we can safely
                 // check only for IEnumerable
-                var collectionProps = props.Where(p => p.PropertyType.GetInterface(nameof(IEnumerable)) != null).ToList();
+                var collectionProps = props.Where(p => p.PropertyType.GetInterface(nameof(IEnumerable)) != null);
 
                 foreach (var prop in collectionProps)
                 {
@@ -201,7 +201,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
             if (_depthLimit > 1)
             {
-                props = props.Where(p => p.PropertyType.GetConstructor(Type.EmptyTypes) != null).ToList();
+                props = props.Where(p => p.PropertyType.GetConstructor(Type.EmptyTypes) != null);
                 foreach (var prop in props)
                 {
                     var additionalSeed = GetAdditionalSeed<T>(prop);
