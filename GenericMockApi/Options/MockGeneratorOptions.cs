@@ -7,7 +7,7 @@ namespace GenericMockApi.Options
 {
     public class MockGeneratorOptions
     {
-        public int DepthLimit { get; set; }
+        public uint DepthLimit { get; set; }
         public int MasterSeed { get; set; }
     }
 }
