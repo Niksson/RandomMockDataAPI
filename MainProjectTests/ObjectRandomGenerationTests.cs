@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using GenericMockApi.Repositories.RandomGenerators;
+using GenericMockApi.Repositories.RandomGenFactory;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,11 @@ namespace MainProjectTests
             public string Name { get; set; }
         }
 
+        public class TestTypeWithCollection
+        {
+            public string[] Name { get; set; }
+        }
+
         [Fact]
         public void ObjectGenerationTest()
         {
@@ -52,6 +58,39 @@ namespace MainProjectTests
             var childValue = childGenerator.GetNext();
 
             Console.WriteLine(JsonConvert.SerializeObject(childValue));
+        }
+
+        [Fact]
+        public void LargeCollectionNumberGenerationTest()
+        {
+            var generator = new RandomCollectionGenerator<IEnumerable<int>>(1000, 0);
+
+            for (int i = 0; i < 100; i++)
+            {
+                generator.GetValues(100000);
+            }
+
+        }
+
+        [Fact]
+        public void LargeObjectNumberGenerationTest()
+        {
+            var childGenerator = new RandomObjectGenerator<Child>(1000, 0);
+
+            for (int i = 0; i < 350000000; i++)
+            {
+                childGenerator.GetNext();
+            }
+
+            //childGenerator.GetValues(10000000);
+        }
+
+        [Fact]
+        public void LargeObjectNumberFactoryGenerationTest()
+        {
+            var factory = new RandomGeneratorFactory();
+            dynamic childGenerator = factory.CreateObjectGenerator(typeof(Child), 1000, 0);
+            childGenerator.GetValues(1);
         }
 
         [Fact]
