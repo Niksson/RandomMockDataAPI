@@ -65,9 +65,9 @@ namespace MainProjectTests
         {
             var generator = new RandomCollectionGenerator<IEnumerable<int>>(1000, 0);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1; i++)
             {
-                generator.GetValues(100000);
+                generator.GetValues(1);
             }
 
         }
@@ -77,20 +77,11 @@ namespace MainProjectTests
         {
             var childGenerator = new RandomObjectGenerator<Child>(1000, 0);
 
-            for (int i = 0; i < 350000000; i++)
+            for (int i = 0; i < 1; i++)
             {
                 childGenerator.GetNext();
             }
 
-            //childGenerator.GetValues(10000000);
-        }
-
-        [Fact]
-        public void LargeObjectNumberFactoryGenerationTest()
-        {
-            var factory = new RandomGeneratorFactory();
-            dynamic childGenerator = factory.CreateObjectGenerator(typeof(Child), 1000, 0);
-            childGenerator.GetValues(1);
         }
 
         [Fact]

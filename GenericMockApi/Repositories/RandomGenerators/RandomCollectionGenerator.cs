@@ -14,7 +14,6 @@ namespace GenericMockApi.Repositories.RandomGenerators
     public class RandomCollectionGenerator<TCollection> : RandomValueGenerator<TCollection> where TCollection : IEnumerable
     {
         private readonly IRandomGeneratorFactory _generatorFactory = new RandomGeneratorFactory();
-        private readonly int _seed;
         private readonly uint _depthLimit;
 
         private readonly Type _collectionType;
@@ -25,7 +24,6 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         public RandomCollectionGenerator(int seed, uint depthLimit) : base(seed)
         {
-            _seed = seed;
             _depthLimit = depthLimit;
 
             _collectionType = typeof(TCollection);
@@ -52,9 +50,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // implements IEnumerable then it's a collection 
             // We've also already checked if the type is string, so it's safe to just check IEnumerable
             else if (_depthLimit >= 0 && _typeParameter.GetInterface(nameof(IEnumerable)) != null)
-                _randomValueGenerator = _generatorFactory.CreateCollectionGenerator(_typeParameter, (int)(_seed + _depthLimit), _depthLimit - 1);
+                _randomValueGenerator = _generatorFactory.CreateCollectionGenerator(_typeParameter, (int)(_seed + _depthLimit), _depthLimit);
 
-            else if (_depthLimit >= 0 && _typeParameter.IsClass && !(typeof(Delegate).IsAssignableFrom(_typeParameter)) && _typeParameter.GetConstructor(Type.EmptyTypes) != null)
+            else if (_depthLimit > 0 && _typeParameter.IsClass && !(typeof(Delegate).IsAssignableFrom(_typeParameter)) && _typeParameter.GetConstructor(Type.EmptyTypes) != null)
                 _randomValueGenerator = _generatorFactory.CreateObjectGenerator(_typeParameter, _seed, _depthLimit - 1);
 
             // We can't assign value types other than we know about or types without a parameterless constructor
@@ -67,40 +65,42 @@ namespace GenericMockApi.Repositories.RandomGenerators
             var length = _randomLengthGenerator.GetNext();
 
             // Create instance of collection
-            var iListType = typeof(List<>).MakeGenericType(_typeParameter);
+            var arrayType = _typeParameter.MakeArrayType();
 
-            var instance = (IList)Activator.CreateInstance(iListType);
+            dynamic instance = Activator.CreateInstance(arrayType, length);
 
-            if(_randomValueGenerator != null)
+            if (_randomValueGenerator != null)
             {
-                var generatorType = _randomValueGenerator.GetType();
-                dynamic generator = Convert.ChangeType(_randomValueGenerator, generatorType);
+                dynamic generator = _randomValueGenerator;
 
                 for (int i = 0; i < length; i++)
                 {
                     var value = generator.GetNext();
-                    if(TypeHelpers.IsTypeNumericOrChar(_typeParameter))
+                    if (TypeHelpers.IsTypeNumericOrChar(_typeParameter))
                     {
-                        var convertedValue = Convert.ChangeType(value, _typeParameter);
-                        var addingMethod = instance.GetType().GetMethod("Add");
-                        addingMethod.Invoke(instance, new object[] { convertedValue });
+                        dynamic convertedValue = Convert.ChangeType(value, _typeParameter);
+                        instance[i] = convertedValue;
                     }
-                    else instance.Add(generator.GetNext());
+                    else instance[i] = value;
                 }
             }
-            else
-                for (int i = 0; i < length; i++)
-                {
-                    instance.Add(Activator.CreateInstance(_typeParameter));
-                }
-            if (_collectionType.IsArray)
-            {
-                var arrayType = _typeParameter.MakeArrayType();
-                dynamic arrayInstance = Activator.CreateInstance(arrayType, length);
-                instance.CopyTo(arrayInstance, 0);
-                return arrayInstance;
-            }
+            else return default;
+
             return (TCollection)instance;
+        }
+
+        public override RandomValueGenerator<TCollection> SetSeed(int seed)
+        {
+            _seed = seed;
+            InitializeGenerators();
+            return this;
+        }
+
+        public override RandomValueGenerator<TCollection> IncrementSeed()
+        {
+            _seed++;
+            InitializeGenerators();
+            return this;
         }
 
     }

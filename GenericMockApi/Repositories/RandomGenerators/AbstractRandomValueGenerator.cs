@@ -26,10 +26,12 @@ namespace GenericMockApi.Repositories.RandomGenerators
     /// <typeparam name="T">A type T values of which to generate</typeparam>
     public abstract class RandomValueGenerator<T> : AbstractRandomValueGenerator
     {
+        protected int _seed;
         protected Random _generator;
 
         public RandomValueGenerator(int seed)
         {
+            _seed = seed;
             _generator = new Random(seed);
         }
 
@@ -37,7 +39,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         // Default implementations that should be the same between types
 
-        public RandomValueGenerator<T> Skip(int skip)
+        public virtual RandomValueGenerator<T> Skip(int skip)
         {
             for (var i = 0; i < skip; i++)
             {
@@ -59,6 +61,13 @@ namespace GenericMockApi.Repositories.RandomGenerators
         public virtual RandomValueGenerator<T> SetSeed(int seed)
         {
             _generator = new Random(seed);
+            return this;
+        }
+
+        public virtual RandomValueGenerator<T> IncrementSeed()
+        {
+            _seed++;
+            _generator = new Random(_seed);
             return this;
         }
     }

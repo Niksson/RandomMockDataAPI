@@ -14,7 +14,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
     public class RandomObjectGenerator<T> : RandomValueGenerator<T> where T : class
     {
 
-        private readonly int _masterSeed;
+        private int _masterSeed;
         private readonly uint _depthLimit;
 
         private readonly IRandomGeneratorFactory _factory = new RandomGeneratorFactory();
@@ -220,6 +220,8 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
             if (_depthLimit < 1) return null;
 
+            var nextSeed = ++_masterSeed;
+
             var instance = (T)Activator.CreateInstance(typeof(T));
 
             foreach(var navigationProp in navigationPropertiesWithFk)
@@ -229,7 +231,11 @@ namespace GenericMockApi.Repositories.RandomGenerators
                 navigationProp.Key.SetValue(instance, generatedValue);
                 var idProp = navigationProp.Key.PropertyType.GetProperties().FirstOrDefault(p => p.Name.ToLower() == "id");
                 navigationProp.Value.SetValue(instance, idProp.GetValue(generatedValue));
+            }
 
+            foreach(dynamic generator in navigationPropertiesGenerators.Values)
+            {
+                generator.IncrementSeed();
             }
 
             #region Primitive properties
@@ -243,6 +249,13 @@ namespace GenericMockApi.Repositories.RandomGenerators
                     propertyWithGenerator.Key.SetValue(instance, convertedValue);
                 }
                 else propertyWithGenerator.Key.SetValue(instance, propertyWithGenerator.Value.GetNext());
+
+                
+            }
+
+            foreach(var generator in numericValueGenerators.Values)
+            {
+                generator.IncrementSeed();
             }
 
             foreach (var propertyWithGenerator in stringValueGenerators)
@@ -250,9 +263,18 @@ namespace GenericMockApi.Repositories.RandomGenerators
                 propertyWithGenerator.Key.SetValue(instance, propertyWithGenerator.Value.GetNext());
             }
 
+            foreach (var generator in stringValueGenerators.Values)
+            {
+                generator.IncrementSeed();
+            }
+
             foreach (var propertyWithGenerator in booleanValueGenerators)
             {
                 propertyWithGenerator.Key.SetValue(instance, propertyWithGenerator.Value.GetNext());
+            }
+            foreach (var generator in booleanValueGenerators.Values)
+            {
+                generator.IncrementSeed();
             }
 
             foreach (var propertyWithGenerator in dateTimeValueGenerators)
@@ -260,20 +282,35 @@ namespace GenericMockApi.Repositories.RandomGenerators
                 propertyWithGenerator.Key.SetValue(instance, propertyWithGenerator.Value.GetNext());
             }
 
-            #endregion
-
-            foreach(var propWithGenerator in collectionValueGenerators)
+            foreach (var generator in dateTimeValueGenerators.Values)
             {
-                dynamic generator = propWithGenerator.Value;
-                var generatedValue = generator.GetNext();
-                propWithGenerator.Key.SetValue(instance, generatedValue);
+                generator.IncrementSeed();
             }
 
-            foreach (var propWithGenerator in objectValueGenerators)
+            #endregion
+
+            foreach (var propertyWithGenerator in collectionValueGenerators)
             {
-                dynamic generator = propWithGenerator.Value;
+                dynamic generator = propertyWithGenerator.Value;
                 var generatedValue = generator.GetNext();
-                propWithGenerator.Key.SetValue(instance, generatedValue);
+                propertyWithGenerator.Key.SetValue(instance, generatedValue);
+            }
+
+            foreach (dynamic generator in collectionValueGenerators.Values)
+            {
+                generator.IncrementSeed();
+            }
+
+            foreach (var propertyWithGenerator in objectValueGenerators)
+            {
+                dynamic generator = propertyWithGenerator.Value;
+                var generatedValue = generator.GetNext();
+                propertyWithGenerator.Key.SetValue(instance, generatedValue);
+            }
+
+            foreach (dynamic generator in objectValueGenerators.Values)
+            {
+                generator.IncrementSeed();
             }
 
             return instance;
@@ -282,6 +319,16 @@ namespace GenericMockApi.Repositories.RandomGenerators
         private int GetAdditionalSeed<TType>(PropertyInfo prop)
         {
             return GenerationHelpers.GetDeterministicHashCode((prop.Name + typeof(TType).Name));
+        }
+
+        public override RandomValueGenerator<T> Skip(int skip)
+        {
+            unchecked
+            {
+                _masterSeed += skip;
+                InitializeGenerators();
+                return this;
+            }
         }
     }
 }
