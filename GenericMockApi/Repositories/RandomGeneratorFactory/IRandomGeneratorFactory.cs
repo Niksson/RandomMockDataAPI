@@ -13,8 +13,8 @@ namespace GenericMockApi.Repositories.RandomGenFactory
         public RandomValueGenerator<bool> CreateBooleanGenerator(int seed);
         public RandomValueGenerator<DateTime> CreateDateTimeGenerator(int seed);
         public RandomValueGenerator<int> CreateCollectionSizeGenerator(int seed);
-        public AbstractRandomValueGenerator CreateCollectionGenerator(Type T, int seed, int depthLimit);
-        public AbstractRandomValueGenerator CreateObjectGenerator(Type T, int seed, int depthLimit);
-        public RandomValueGenerator<T> CreateObjectGenerator<T>(int seed, int depthLimit) where T : class;
+        public AbstractRandomValueGenerator CreateCollectionGenerator(Type T, int seed, uint depthLimit);
+        public AbstractRandomValueGenerator CreateObjectGenerator(Type T, int seed, uint depthLimit);
+        public RandomValueGenerator<T> CreateObjectGenerator<T>(int seed, uint depthLimit) where T : class;
     }
 }

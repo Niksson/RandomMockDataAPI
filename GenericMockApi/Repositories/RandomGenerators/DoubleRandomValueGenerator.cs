@@ -7,11 +7,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
 {
     public class DoubleRandomValueGenerator : RandomValueGenerator<double>
     {
-        private readonly Random _generator;
 
-        public DoubleRandomValueGenerator(int seed)
+        public DoubleRandomValueGenerator(int seed) : base(seed)
         {
-            _generator = new Random(seed);
         }
 
         public override double GetNext()

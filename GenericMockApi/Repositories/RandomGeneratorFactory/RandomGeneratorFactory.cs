@@ -33,21 +33,21 @@ namespace GenericMockApi.Repositories.RandomGenFactory
         }
 
         // TODO: If things go wrong, consider returning skip variable
-        public AbstractRandomValueGenerator CreateCollectionGenerator(Type T, int seed, int depthLimit)
+        public AbstractRandomValueGenerator CreateCollectionGenerator(Type T, int seed, uint depthLimit)
         {
             var type = typeof(RandomCollectionGenerator<>).MakeGenericType(T);
             var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(type, seed, depthLimit);
             return generator;
         }
 
-        public AbstractRandomValueGenerator CreateObjectGenerator(Type T, int seed, int depthLimit)
+        public AbstractRandomValueGenerator CreateObjectGenerator(Type T, int seed, uint depthLimit)
         {
             var type = typeof(RandomObjectGenerator<>).MakeGenericType(T);
             var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(type, seed, depthLimit);
             return generator;
         }
 
-        public RandomValueGenerator<T> CreateObjectGenerator<T>(int seed, int depthLimit) where T : class
+        public RandomValueGenerator<T> CreateObjectGenerator<T>(int seed, uint depthLimit) where T : class
         {
             return new RandomObjectGenerator<T>(seed, depthLimit);
         }

@@ -9,7 +9,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
     {
         private readonly Random _generator;
 
-        public CollectionSizeGenerator(int seed)
+        public CollectionSizeGenerator(int seed) : base(seed)
         {
             _generator = new Random(seed);
         }

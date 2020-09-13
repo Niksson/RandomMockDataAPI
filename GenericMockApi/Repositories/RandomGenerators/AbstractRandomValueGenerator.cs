@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GenericMockApi.Repositories.RandomGenFactory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,6 +26,13 @@ namespace GenericMockApi.Repositories.RandomGenerators
     /// <typeparam name="T">A type T values of which to generate</typeparam>
     public abstract class RandomValueGenerator<T> : AbstractRandomValueGenerator
     {
+        protected Random _generator;
+
+        public RandomValueGenerator(int seed)
+        {
+            _generator = new Random(seed);
+        }
+
         public abstract T GetNext();
 
         // Default implementations that should be the same between types
@@ -46,6 +54,12 @@ namespace GenericMockApi.Repositories.RandomGenerators
                 values.Add(GetNext());
             }
             return values;
+        }
+
+        public virtual RandomValueGenerator<T> SetSeed(int seed)
+        {
+            _generator = new Random(seed);
+            return this;
         }
     }
 }

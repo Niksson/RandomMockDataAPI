@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 namespace GenericMockApi.Repositories.RandomGenerators
 {
 
-    public class RandomCollectionGenerator<T> : RandomValueGenerator<T> where T : IEnumerable
+    public class RandomCollectionGenerator<TCollection> : RandomValueGenerator<TCollection> where TCollection : IEnumerable
     {
         private readonly IRandomGeneratorFactory _generatorFactory = new RandomGeneratorFactory();
         private readonly int _seed;
-        private readonly int _depthLimit;
+        private readonly uint _depthLimit;
 
         private readonly Type _collectionType;
         private readonly Type _typeParameter;
@@ -23,12 +23,12 @@ namespace GenericMockApi.Repositories.RandomGenerators
         private RandomValueGenerator<int> _randomLengthGenerator;
         private AbstractRandomValueGenerator _randomValueGenerator;
 
-        public RandomCollectionGenerator(int seed, int depthLimit)
+        public RandomCollectionGenerator(int seed, uint depthLimit) : base(seed)
         {
             _seed = seed;
             _depthLimit = depthLimit;
 
-            _collectionType = typeof(T);
+            _collectionType = typeof(TCollection);
             if (_collectionType.IsArray) _typeParameter = _collectionType.GetElementType();
             else _typeParameter = _collectionType.GetGenericArguments().FirstOrDefault();
 
@@ -51,10 +51,10 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // Just for sake of not making this too complicated let's assume that if a type
             // implements IEnumerable then it's a collection 
             // We've also already checked if the type is string, so it's safe to just check IEnumerable
-            else if (_typeParameter.GetInterface(nameof(IEnumerable)) != null)
-                _randomValueGenerator = _generatorFactory.CreateCollectionGenerator(_typeParameter, _seed + _depthLimit, _depthLimit - 1);
+            else if (_depthLimit >= 0 && _typeParameter.GetInterface(nameof(IEnumerable)) != null)
+                _randomValueGenerator = _generatorFactory.CreateCollectionGenerator(_typeParameter, (int)(_seed + _depthLimit), _depthLimit - 1);
 
-            else if (_typeParameter.IsClass && !(typeof(Delegate).IsAssignableFrom(_typeParameter)) && _typeParameter.GetConstructor(Type.EmptyTypes) != null)
+            else if (_depthLimit >= 0 && _typeParameter.IsClass && !(typeof(Delegate).IsAssignableFrom(_typeParameter)) && _typeParameter.GetConstructor(Type.EmptyTypes) != null)
                 _randomValueGenerator = _generatorFactory.CreateObjectGenerator(_typeParameter, _seed, _depthLimit - 1);
 
             // We can't assign value types other than we know about or types without a parameterless constructor
@@ -62,7 +62,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
            
         }
 
-        public override T GetNext()
+        public override TCollection GetNext()
         {
             var length = _randomLengthGenerator.GetNext();
 
@@ -100,7 +100,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                 instance.CopyTo(arrayInstance, 0);
                 return arrayInstance;
             }
-            return (T)instance;
+            return (TCollection)instance;
         }
 
     }

@@ -7,11 +7,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
 {
     public class DateTimeRandomValueGenerator : RandomValueGenerator<DateTime> 
     {
-        private readonly Random _generator;
 
-        public DateTimeRandomValueGenerator(int seed)
+        public DateTimeRandomValueGenerator(int seed) : base(seed)
         {
-            _generator = new Random(seed);
         }
 
         public override DateTime GetNext()

@@ -7,11 +7,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
 {
     public class BoolRandomValueGenerator : RandomValueGenerator<bool>
     {
-        private readonly Random _generator;
 
-        public BoolRandomValueGenerator(int seed)
-        {
-            _generator = new Random(seed);
+        public BoolRandomValueGenerator(int seed) : base(seed)
+        { 
         }
 
         public override bool GetNext()

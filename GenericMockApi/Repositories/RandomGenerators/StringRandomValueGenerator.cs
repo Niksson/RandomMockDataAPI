@@ -8,12 +8,10 @@ namespace GenericMockApi.Repositories.RandomGenerators
 {
     public class StringRandomValueGenerator : RandomValueGenerator<string>
     {
-        private readonly Random _generator;
         private readonly string _base = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
            
-        public StringRandomValueGenerator(int seed)
+        public StringRandomValueGenerator(int seed) : base(seed)
         {
-            _generator = new Random(seed);
         }
 
         public override string GetNext()

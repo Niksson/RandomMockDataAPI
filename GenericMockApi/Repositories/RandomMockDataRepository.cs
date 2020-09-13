@@ -30,7 +30,7 @@ namespace GenericMockApi.Repositories
         public IEnumerable<object> GetMockObjects(string typeName, int skip, int take)
         {
             var masterSeed = _options.Value.MasterSeed;
-            var depthLimit = _options.Value.DepthLimit;
+            var depthLimit = (uint) _options.Value.DepthLimit;
 
             var objects = new List<object>();
 
