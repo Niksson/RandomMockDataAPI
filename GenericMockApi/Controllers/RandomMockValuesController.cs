@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GenericMockApi.Options;
 using GenericMockApi.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace GenericMockApi.Controllers
 {
@@ -13,15 +15,19 @@ namespace GenericMockApi.Controllers
     public class RandomMockValuesController : ControllerBase
     {
         private readonly IMockDataRepository _repository;
+        private readonly IOptionsSnapshot<MockGeneratorOptions> _options;
 
-        public RandomMockValuesController(IMockDataRepository repository)
+        public RandomMockValuesController(IMockDataRepository repository, IOptionsSnapshot<MockGeneratorOptions> options)
         {
             _repository = repository;
+            _options = options;
         }
 
         [HttpGet("{typeName}")]
         public ActionResult GetMockData(string typeName, int skip, int take)
         {
+            var objectsPerRequest = _options.Value.ObjectsPerRequest;
+            if(take > objectsPerRequest) return BadRequest(new { error = $"The amount of objects to take exceeds limit in appsettings.json: {objectsPerRequest}"});
             var data = _repository.GetMockObjects(typeName, skip, take);
             if (data == null) return BadRequest();
             else return Ok(data);

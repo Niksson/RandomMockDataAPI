@@ -20,7 +20,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
         private readonly Type _typeParameter;
 
         private RandomValueGenerator<int> _randomLengthGenerator;
-        private AbstractRandomValueGenerator _randomValueGenerator;
+        private RandomValueGenerator _randomValueGenerator;
 
         public RandomCollectionGenerator(int seed, uint depthLimit) : base(seed)
         {
@@ -37,7 +37,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
             _randomLengthGenerator = _generatorFactory.CreateCollectionSizeGenerator(_seed);
 
-            if (TypeHelpers.IsTypeNumericOrChar(_typeParameter))
+            if (TypeCheckExtensions.IsTypeNumericOrChar(_typeParameter))
                 _randomValueGenerator = _generatorFactory.CreateNumericGenerator(_seed);
             else if (_typeParameter == typeof(string))
                 _randomValueGenerator = _generatorFactory.CreateStringGenerator(_seed);
@@ -64,29 +64,58 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
             var length = _randomLengthGenerator.GetNext();
 
-            // Create instance of collection
-            var arrayType = _typeParameter.MakeArrayType();
-
-            dynamic instance = Activator.CreateInstance(arrayType, length);
-
-            if (_randomValueGenerator != null)
+            if(_collectionType.IsArray)
             {
-                dynamic generator = _randomValueGenerator;
+                // Create instance of collection
+                var arrayType = _typeParameter.MakeArrayType();
 
-                for (int i = 0; i < length; i++)
+                dynamic instance = Activator.CreateInstance(arrayType, length);
+
+                if (_randomValueGenerator != null)
                 {
-                    var value = generator.GetNext();
-                    if (TypeHelpers.IsTypeNumericOrChar(_typeParameter))
-                    {
-                        dynamic convertedValue = Convert.ChangeType(value, _typeParameter);
-                        instance[i] = convertedValue;
-                    }
-                    else instance[i] = value;
-                }
-            }
-            else return default;
+                    dynamic generator = _randomValueGenerator;
 
-            return (TCollection)instance;
+                    for (int i = 0; i < length; i++)
+                    {
+                        var value = generator.GetNext();
+                        if (TypeCheckExtensions.IsTypeNumericOrChar(_typeParameter))
+                        {
+                            dynamic convertedValue = Convert.ChangeType(value, _typeParameter);
+                            instance[i] = convertedValue;
+                        }
+                        else instance[i] = value;
+                    }
+                }
+                else return default;
+
+                return (TCollection)instance;
+            }
+            else
+            {
+                // Create an instance of collection
+                var genericType = typeof(List<>).MakeGenericType(_typeParameter);
+
+                dynamic instance = Activator.CreateInstance(genericType);
+
+                if (_randomValueGenerator != null)
+                {
+                    dynamic generator = _randomValueGenerator;
+
+                    for (int i = 0; i < length; i++)
+                    {
+                        var value = generator.GetNext();
+                        if (TypeCheckExtensions.IsTypeNumericOrChar(_typeParameter))
+                        {
+                            dynamic convertedValue = Convert.ChangeType(value, _typeParameter);
+                            instance.Add(convertedValue);
+                        }
+                        else instance.Add(value);
+                    }
+                }
+                else return default;
+
+                return (TCollection)instance;
+            }
         }
 
         public override RandomValueGenerator<TCollection> SetSeed(int seed)

@@ -9,5 +9,6 @@ namespace GenericMockApi.Options
     {
         public uint DepthLimit { get; set; }
         public int MasterSeed { get; set; }
+        public uint ObjectsPerRequest { get; set; }
     }
 }

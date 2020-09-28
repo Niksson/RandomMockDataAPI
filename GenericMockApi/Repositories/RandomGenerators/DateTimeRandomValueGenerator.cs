@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class DateTimeRandomValueGenerator : RandomValueGenerator<DateTime> 
+    public class DateTimeRandomValueGenerator : PrimitiveRandomValueGenerator<DateTime> 
     {
 
         public DateTimeRandomValueGenerator(int seed) : base(seed)

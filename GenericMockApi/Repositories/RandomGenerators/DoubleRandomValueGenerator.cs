@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GenericMockApi.Repositories.RandomGenerators
 {
-    public class DoubleRandomValueGenerator : RandomValueGenerator<double>
+    public class DoubleRandomValueGenerator : PrimitiveRandomValueGenerator<double>
     {
 
         public DoubleRandomValueGenerator(int seed) : base(seed)

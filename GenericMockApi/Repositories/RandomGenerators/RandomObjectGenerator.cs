@@ -19,36 +19,42 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
         private readonly IRandomGeneratorFactory _factory = new RandomGeneratorFactory();
 
+        private IEnumerable<PropertyInfo> props;
+        
         private Dictionary<PropertyInfo, RandomValueGenerator<double>> numericValueGenerators;
         private Dictionary<PropertyInfo, RandomValueGenerator<string>> stringValueGenerators;
         private Dictionary<PropertyInfo, RandomValueGenerator<bool>> booleanValueGenerators;
         private Dictionary<PropertyInfo, RandomValueGenerator<DateTime>> dateTimeValueGenerators;
-        private Dictionary<PropertyInfo, AbstractRandomValueGenerator> collectionValueGenerators;
-        private Dictionary<PropertyInfo, AbstractRandomValueGenerator> navigationPropertiesGenerators;
-        private Dictionary<PropertyInfo, AbstractRandomValueGenerator> objectValueGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator> collectionValueGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator> navigationPropertiesGenerators;
+        private Dictionary<PropertyInfo, RandomValueGenerator> objectValueGenerators;
 
         // Key: navigation property, Value: its FK
         private Dictionary<PropertyInfo, PropertyInfo> navigationPropertiesWithFk;
 
 
-        public RandomObjectGenerator(int masterSeed, uint depthLimit) : base(masterSeed)
+        public RandomObjectGenerator(int masterSeed, uint depthLimit, IEnumerable<PropertyInfo> ignoredProperties = null) : base(masterSeed)
         {
             _masterSeed = masterSeed;
             _depthLimit = depthLimit;
+            
+            // Get all props of a type
+            props = typeof(T).GetRuntimeProperties();
+
+            if(ignoredProperties != null) props = props.Except(ignoredProperties);
 
             InitializeGenerators();
         }
 
         private void InitializeGenerators()
         {
-            // Get all props of a type
-            var props = typeof(T).GetRuntimeProperties();
+            
 
             // 1. Filter out all read only props, we cannot assign them anyway
             props = props.Where(p => p.CanWrite);
 
             #region Navigation props generators
-            navigationPropertiesGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
+            navigationPropertiesGenerators = new Dictionary<PropertyInfo, RandomValueGenerator>();
 
             // 2. Try to find navigation properties (properties with a foreign key
 
@@ -75,7 +81,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                         if (idProp != null)
                         {
                             var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(typeof(T));
-                            var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(navigationProp), _depthLimit - 1);
+                            var generator = (RandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(navigationProp), _depthLimit - 1);
                             navigationPropertiesGenerators.Add(navigationProp, generator);
                             navigationPropertiesWithFk.Add(navigationProp, prop);
                         }
@@ -99,7 +105,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                                 .FirstOrDefault(p => p.Name.ToLower() == "id") != null))
                     {
                         var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(prop.PropertyType);
-                        var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(prop), _depthLimit - 1);
+                        var generator = (RandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + GetAdditionalSeed<T>(prop), _depthLimit - 1);
                         navigationPropertiesGenerators.Add(prop, generator);
                         navigationPropertiesWithFk.Add(prop, fkProp);
                     }
@@ -111,6 +117,12 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
             #endregion
 
+            #region Collection navigation props generators
+
+            
+
+            #endregion
+
             #region Primitive props generators
 
             // 3. Assign generators to properties with "primitive" types
@@ -118,7 +130,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             // 3.1 Numeric props
             numericValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator<double>>();
 
-            var numericProps = props.Where(p => TypeHelpers.IsTypeNumericOrChar(p.PropertyType));
+            var numericProps = props.Where(p => TypeCheckExtensions.IsTypeNumericOrChar(p.PropertyType));
 
             foreach (var prop in numericProps)
             {
@@ -174,7 +186,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
             #region Collection props generators
 
             // 4. Assign generators to collection props
-            collectionValueGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
+            collectionValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator>();
 
             if(_depthLimit >= 0)
             {
@@ -187,7 +199,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                     var additionalSeed = GetAdditionalSeed<T>(prop);
 
                     var generatorType = typeof(RandomCollectionGenerator<>).MakeGenericType(prop.PropertyType);
-                    var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + additionalSeed, _depthLimit - 1);
+                    var generator = (RandomValueGenerator)Activator.CreateInstance(generatorType, _masterSeed + additionalSeed, _depthLimit - 1);
 
                     collectionValueGenerators.Add(prop, generator);
                 }
@@ -197,9 +209,9 @@ namespace GenericMockApi.Repositories.RandomGenerators
 
             #region Other props generators
             // 5. Leave all props that we can easily assign at runtime - which have a constructor with no parameters
-            objectValueGenerators = new Dictionary<PropertyInfo, AbstractRandomValueGenerator>();
+            objectValueGenerators = new Dictionary<PropertyInfo, RandomValueGenerator>();
 
-            if (_depthLimit > 1)
+            if (_depthLimit >= 1)
             {
                 props = props.Where(p => p.PropertyType.GetConstructor(Type.EmptyTypes) != null);
                 foreach (var prop in props)
@@ -207,7 +219,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
                     var additionalSeed = GetAdditionalSeed<T>(prop);
 
                     var generatorType = typeof(RandomObjectGenerator<>).MakeGenericType(prop.PropertyType);
-                    var generator = (AbstractRandomValueGenerator)Activator.CreateInstance(generatorType, additionalSeed, _depthLimit - 1);
+                    var generator = (RandomValueGenerator)Activator.CreateInstance(generatorType, additionalSeed, _depthLimit - 1);
                     objectValueGenerators.Add(prop, generator);
                 }
             }
