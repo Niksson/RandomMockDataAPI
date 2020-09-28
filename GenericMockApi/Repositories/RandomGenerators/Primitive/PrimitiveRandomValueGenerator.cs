@@ -10,5 +10,16 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
             _generator = new Random(seed);
         }
+
+        protected override void IncrementSeed()
+        {
+            _seed++;
+            _generator = new Random(_seed);
+        }
+
+        protected override void SetSeed(int seed)
+        {
+            _generator = new Random(seed);
+        }
     }
 }

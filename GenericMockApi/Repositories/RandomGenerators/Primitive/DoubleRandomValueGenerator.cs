@@ -12,7 +12,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
         }
 
-        public override double GetNext()
+        protected override double GenerateRandomValue()
         {
             var value = _generator.NextDouble() * 1000;
 

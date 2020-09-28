@@ -12,7 +12,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
         { 
         }
 
-        public override bool GetNext()
+        protected override bool GenerateRandomValue()
         {
             // There are different methods to generate a bool value,
             // so let's choose the first one that comes to head

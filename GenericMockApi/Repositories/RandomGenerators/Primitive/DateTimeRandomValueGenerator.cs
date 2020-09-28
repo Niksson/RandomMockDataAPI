@@ -12,7 +12,7 @@ namespace GenericMockApi.Repositories.RandomGenerators
         {
         }
 
-        public override DateTime GetNext()
+        protected override DateTime GenerateRandomValue()
         {
             var start = new DateTime(2010, 1, 1);
             var end = new DateTime(2025, 1, 1);
